@@ -1,0 +1,120 @@
+---
+import { getCollection, render } from "astro:content";
+import Doc from "../../layouts/Doc.astro";
+import Pinout from "../../components/Pinout.astro";
+import Wiring from "../../components/Wiring.astro";
+import LivePanel from "../../components/LivePanel.astro";
+import ProgressToggle from "../../components/ProgressToggle.astro";
+
+export async function getStaticPaths() {
+  const all = (await getCollection("components")).sort((a, b) => a.data.order - b.data.order);
+  return all.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, prev: all[i - 1], next: all[i + 1] },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+const c = entry.data;
+const { Content, headings } = await render(entry);
+const link = (e?: typeof entry) => (e ? { href: `/components/${e.id}/`, label: e.data.name } : undefined);
+
+const toc = [
+  { slug: "specs", text: "Specs" },
+  { slug: "pinout", text: "Pinout" },
+  { slug: "wiring", text: "Wiring" },
+  { slug: "run", text: "Run it" },
+  { slug: "live", text: "Live view" },
+  ...headings.filter((h) => h.depth === 2),
+  { slug: "pitfalls", text: "Pitfalls" },
+];
+---
+
+<Doc
+  title={c.name}
+  description={c.summary}
+  index={`02 · ${c.name}`}
+  current={`/components/${entry.id}/`}
+  toc={toc}
+  prev={link(prev)}
+  next={link(next)}
+>
+  <header class="card head">
+    <div class="row">
+      <span class="tag">Component · {c.kind}</span>
+      <ProgressToggle id={`learned:${entry.id}`} />
+    </div>
+    <h1>{c.name}</h1>
+    <p class="muted">{c.summary}</p>
+    <div class="chips">{c.chips.map((chip) => <span class="chip">{chip}</span>)}</div>
+  </header>
+
+  <section id="specs" class="plate reveal">
+    <h2>Specs</h2>
+    <table class="spec">
+      <tbody>
+        {c.specs.map((s) => <tr><th scope="row">{s.label}</th><td>{s.value}</td></tr>)}
+      </tbody>
+    </table>
+  </section>
+
+  <section id="pinout" class="plate reveal">
+    <h2>Pinout</h2>
+    <Pinout name={c.name} board={c.board} pins={c.pins} />
+  </section>
+
+  <section id="wiring" class="plate reveal">
+    <h2>Wiring</h2>
+    <p class="muted">Connect the wires in this order. Unplug USB while wiring.</p>
+    <Wiring board={c.board} wiring={c.wiring} />
+  </section>
+
+  <section id="run" class="plate reveal">
+    <h2>Run it</h2>
+    <ol class="run">
+      <li><span class="n">1</span><span>Wire the board as shown above.</span></li>
+      <li>
+        <span class="n">2</span>
+        <span>Open <span class="chip line">firmware/{c.firmware}</span> in PlatformIO and upload it to the ESP32-S3.</span>
+      </li>
+      <li><span class="n">3</span><span>Plug USB into the port labelled UART, close any serial monitor, then press Connect board below and pick the port.</span></li>
+    </ol>
+  </section>
+
+  <section id="live" class="stack reveal">
+    <h2>Live view</h2>
+    <LivePanel name={c.name} visualizer={c.visualizer} stream={c.stream} />
+  </section>
+
+  <section class="plate prose reveal">
+    <Content />
+  </section>
+
+  <section id="pitfalls" class="stack reveal">
+    <h2>Pitfalls</h2>
+    {c.pitfalls.map((p) => (
+      <div class="callout warn">
+        <span class="tag plain">{p.title}</span>
+        <p>{p.body}</p>
+      </div>
+    ))}
+  </section>
+</Doc>
+
+<style>
+  .head .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  section { scroll-margin-top: 24px; }
+  .run { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .run li { display: flex; gap: 16px; align-items: baseline; }
+  .n {
+    font: 500 12px/1 var(--font-mono);
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-sm);
+  }
+  .chip.line { white-space: normal; }
+</style>

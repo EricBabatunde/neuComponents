@@ -1,0 +1,132 @@
+---
+import { getCollection } from "astro:content";
+import Base from "../layouts/Base.astro";
+
+const components = (await getCollection("components")).sort((a, b) => a.data.name.localeCompare(b.data.name));
+const tutorials = (await getCollection("tutorials")).sort((a, b) => a.data.order - b.data.order);
+---
+
+<Base
+  title="NeuComponents"
+  description="Learn sensors and modules by wiring them to an ESP32-S3 and watching their readings live in the browser."
+  index="01 · Catalog"
+>
+  <main class="home">
+    <header class="plate ink intro">
+      <h1>Plug in a part. Watch what it does.</h1>
+      <p class="muted">
+        Pick a component, wire it to an ESP32-S3, flash its firmware, and connect over USB. The page draws what the
+        sensor is measuring while you read how it works.
+      </p>
+      <ol class="how">
+        <li><span class="tag">Wire</span><span>Follow the colored wiring diagram.</span></li>
+        <li><span class="tag">Flash</span><span>Upload the component's folder from firmware/.</span></li>
+        <li><span class="tag">Connect</span><span>Press Connect board in Chrome or Edge.</span></li>
+      </ol>
+    </header>
+
+    <section class="plate catalog-wrap" aria-labelledby="catalog-title">
+      <div class="head">
+        <h2 id="catalog-title" class="tag">Components</h2>
+        <span class="muted count">{components.length} parts</span>
+      </div>
+      <input class="search" id="search" type="search" placeholder="Search by name" aria-label="Search components" autocomplete="off" />
+      <ul class="catalog stagger" id="catalog">
+        {components.map((c, i) => (
+          <li style={`--i:${i}`} data-name={`${c.data.name} ${c.data.kind}`.toLowerCase()}>
+            <a href={`/components/${c.id}/`}>
+              <strong>{c.data.name}</strong>
+              <span class="right">
+                <span class="tag plain learned" data-progress-label={`learned:${c.id}`} hidden>Learned</span>
+                <span class="chip line">{c.data.kind}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="empty" id="empty" hidden>
+        <p>No component matches "<span id="term"></span>".</p>
+        <button class="btn ghost" type="button" id="clear">Clear search</button>
+      </div>
+    </section>
+
+    {tutorials.length > 0 && (
+      <section class="stack" aria-labelledby="tut-title">
+        <h2 id="tut-title" class="tag">Tutorials</h2>
+        <div class="tuts">
+          {tutorials.map((t) => (
+            <a class="card" href={`/tutorials/${t.id}/`}>
+              <h3>{t.data.title}</h3>
+              <p class="muted">{t.data.summary}</p>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+</Base>
+
+<script>
+  const input = document.querySelector<HTMLInputElement>("#search")!;
+  const rows = [...document.querySelectorAll<HTMLLIElement>("#catalog li")];
+  const empty = document.querySelector<HTMLElement>("#empty")!;
+  const term = document.querySelector("#term")!;
+  const filter = () => {
+    const q = input.value.trim().toLowerCase();
+    let shown = 0;
+    for (const r of rows) {
+      const hit = r.dataset.name!.includes(q);
+      r.hidden = !hit;
+      if (hit) shown++;
+    }
+    term.textContent = input.value.trim();
+    empty.hidden = shown > 0;
+  };
+  input.addEventListener("input", filter);
+  document.querySelector("#clear")!.addEventListener("click", () => {
+    input.value = "";
+    filter();
+    input.focus();
+  });
+</script>
+
+<style>
+  .home { display: grid; gap: 48px; max-width: 1040px; width: 100%; margin: 0 auto; }
+  .intro { gap: 24px; padding: 32px; }
+  @media (max-width: 640px) { .intro { padding: 24px; } }
+  .how { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .how li { display: grid; gap: 8px; align-content: start;border-top: 1px solid var(--color-border); padding-top: 12px; }
+  @media (max-width: 640px) { .how { grid-template-columns: 1fr; } }
+  .head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+  .count { font: 400 12px var(--font-mono); }
+  .search {
+    font: 400 16px var(--font-body);
+    height: 48px;
+    padding: 0 16px;
+    width: 100%;
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+  }
+  .search::placeholder { color: var(--color-text-muted); }
+  .catalog { list-style: none; margin: 0; padding: 0; border: 1px solid var(--color-border); border-radius: var(--radius-lg); overflow: hidden; }
+  .catalog li + li { border-top: 1px solid var(--color-border); }
+  .catalog a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    text-decoration: none;
+    transition: background var(--duration-fast) var(--ease-standard);
+  }
+  .catalog a:hover { background: var(--color-bg); }
+  .catalog a:hover strong { color: var(--color-primary-hover); }
+  .catalog a:focus-visible { outline-offset: -2px; }
+  .catalog strong { font-size: 20px; font-weight: 500; transition: color var(--duration-fast) var(--ease-standard); }
+  .right { display: flex; gap: 12px; align-items: center; }
+  .learned { color: var(--color-success); }
+  .empty { display: grid; gap: 12px; justify-items: start; }
+  .tuts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+</style>

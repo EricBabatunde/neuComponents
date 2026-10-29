@@ -1,0 +1,45 @@
+/* Generated from docs/design.locked.md §6.3. Change values there first. */
+:root {
+  --color-primary: #DC211A;
+  --color-primary-hover: #B91C14;
+  --color-secondary: #101114;
+  --color-bg: #F2F0EC;
+  --color-surface: #FFFFFF;
+  --color-text: #101114;
+  --color-text-muted: #6B6966;
+  --color-border: #DCDCDC;
+  --color-focus: #DC211A;
+  --color-success: #187A42;
+  --color-warning: #B45309;
+  --color-error: #DC211A;
+
+  --font-heading: "Space Grotesk", system-ui, sans-serif;
+  --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-full: 9999px;
+
+  --shadow-subtle: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-medium: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-strong: 0 8px 24px rgba(0,0,0,0.15);
+
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+
+  color-scheme: light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

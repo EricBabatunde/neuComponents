@@ -1,0 +1,63 @@
+---
+name: VL53L1X
+kind: ToF distance
+summary: A time-of-flight distance sensor. It times how long invisible infrared light takes to bounce back and turns that into millimetres, up to about 4 metres.
+order: 2
+chips: ["I²C · 0x29", "Up to 4 m", "27° cone", "Up to 50 Hz"]
+specs:
+  - { label: Sensor, value: "ST VL53L1X time-of-flight ranging sensor" }
+  - { label: Emitter, value: "940 nm infrared laser, eye-safe Class 1" }
+  - { label: Interface, value: "I²C, up to 400 kHz" }
+  - { label: Address, value: "0x29 (can be changed in software)" }
+  - { label: Range, value: "Short mode about 1.3 m, long mode up to 4 m in the dark" }
+  - { label: Field of view, value: "27° cone by default; can be narrowed with a region of interest" }
+  - { label: Rate, value: "Up to 50 Hz with a 20 ms timing budget" }
+  - { label: Firmware output, value: "Short mode, 20 ms budget, about 50 samples per second" }
+board:
+  color: "#4B2A7B"
+  label: VL53L1X
+pins:
+  - { label: VIN, fn: "Power in. Most breakouts accept 3.3 V or 5 V through an onboard regulator." }
+  - { label: GND, fn: "Ground. Must be shared with the ESP32." }
+  - { label: SCL, fn: "I²C clock line, driven by the ESP32." }
+  - { label: SDA, fn: "I²C data line." }
+  - { label: GPIO1, fn: "Interrupt output, signals a finished measurement. Not used here." }
+  - { label: XSHUT, fn: "Shutdown input. Pull low to turn the sensor off; used to give several sensors different addresses." }
+wiring:
+  - { pin: VIN, to: 3V3, wire: "#D7261E", why: "Powers the sensor." }
+  - { pin: GND, to: GND, wire: "#1A1A1A", why: "Common ground." }
+  - { pin: SDA, to: GPIO8, wire: "#1E6FD9", why: "Default I²C data pin on the ESP32-S3 Arduino core." }
+  - { pin: SCL, to: GPIO9, wire: "#F2C200", why: "Default I²C clock pin." }
+firmware: vl53l1x
+visualizer: tof-sweep
+stream:
+  - { key: d, label: Distance, unit: "mm", digits: 0 }
+  - { key: status, label: Status, digits: 0 }
+  - { key: signal, label: Signal, unit: "MCPS", digits: 2 }
+  - { key: ambient, label: Ambient, unit: "MCPS", digits: 2 }
+pitfalls:
+  - title: Peel off the film
+    body: "New sensors often ship with a thin protective film over the lens. Readings stay short or erratic until it is removed."
+  - title: It sees a cone, not a dot
+    body: "The sensor averages everything inside a 27° cone. At 1 m that cone is about 48 cm wide, so small objects and sharp edges get blurred together."
+  - title: Sunlight shortens the range
+    body: "Bright ambient infrared light, especially sunlight, adds noise. Watch the Ambient readout: when it rises, maximum range drops."
+  - title: Non-zero status
+    body: "Status 0 means the reading is valid. Other values flag weak signal, out-of-range targets or wrap-around. The profile skips those readings."
+---
+
+## How time of flight works
+
+The sensor fires short pulses of infrared light and counts how long the reflection takes to come back. Light travels about 300 mm per nanosecond, so a target 1 m away returns light after roughly 6.7 ns. The VL53L1X measures that with an array of very fast light detectors called SPADs.
+
+## Reading the sweep profile
+
+The VL53L1X returns one distance per reading, not an image. To see a shape, sweep the sensor slowly across it by hand. Each reading becomes a dot on the profile, newest on the right. Pointing at a box on a table, then past its edge to the floor, shows two flat levels with a step between them. The height of the step is the height of the box.
+
+## Why edges look like ramps
+
+Because the sensor sees a cone, the reading near an edge mixes the near and far surfaces. The closer the sensor is to the edge, the narrower the cone and the sharper the step. Move closer to get a crisper profile.
+
+## Going further
+
+The VL53L1X can shrink its detector to a region of interest as small as 4×4 of its 16×16 SPADs and move that region around. Stepping the region across the array gives a coarse grid of distances without moving the sensor. That mode is a good next experiment once the basic profile makes sense.

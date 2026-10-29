@@ -1,0 +1,22 @@
+---
+title: Scan the edge of a box
+summary: Sweep a VL53L1X across a box on your desk and read its height from the distance profile.
+order: 1
+uses: [vl53l1x]
+live: vl53l1x
+steps:
+  - title: Wire the sensor
+    body: "Follow the VL53L1X wiring diagram: VIN to 3V3, GND to GND, SDA to GPIO8, SCL to GPIO9. Remove the protective film from the lens."
+  - title: Flash the firmware
+    body: "Open firmware/vl53l1x in PlatformIO and upload it. The board starts printing one reading per line at 115200 baud."
+  - title: Set up the scene
+    body: "Put a box about 40 cm tall on the floor or a table. Hold the sensor about 50 cm above the box, pointing straight down."
+  - title: Connect and sweep
+    body: "Press Connect board below and pick the ESP32's port. Move the sensor slowly sideways from above the box to past its edge and back, taking about two seconds each way."
+  - title: Read the height
+    body: "The profile shows two levels. Subtract the near level (box top) from the far level (floor) to get the box height. Try again closer to the box and notice the step gets sharper."
+---
+
+You will turn a single-point distance sensor into a simple scanner. Each reading is one dot; sweeping by hand lines the dots up into a side view of whatever is below the sensor.
+
+This works because the sensor's distance changes sharply when its cone moves off the box and onto the floor. Nothing else is needed beyond the sensor, the ESP32-S3, four wires and a box.

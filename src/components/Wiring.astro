@@ -1,0 +1,91 @@
+---
+import { mcu } from "../data/boards";
+
+interface Props {
+  board: { color: string; label: string };
+  wiring: { pin: string; to: string; wire: string; why: string }[];
+}
+const { board, wiring } = Astro.props;
+const W = 640;
+const ROW = 48;
+const TOP = 64;
+const H = TOP + wiring.length * ROW + 16;
+const y = (i: number) => TOP + i * ROW + ROW / 2;
+---
+
+<figure class="wiring">
+  <div class="scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="img" aria-label={`Wiring from ${board.label} to ${mcu.name}`}>
+      <rect x="1" y="1" width="158" height={H - 2} rx="6" fill={board.color} />
+      <text x="16" y="32" class="silk">{board.label}</text>
+      <rect x="481" y="1" width="158" height={H - 2} rx="6" fill={mcu.color} />
+      <text x="624" y="32" class="silk" text-anchor="end">ESP32-S3</text>
+      {wiring.map((w, i) => (
+        <g>
+          <text x="128" y={y(i) + 4} class="silk" text-anchor="end">{w.pin}</text>
+          <circle cx="148" cy={y(i)} r="6" class="pad" />
+          <text x="512" y={y(i) + 4} class="silk">{w.to}</text>
+          <circle cx="492" cy={y(i)} r="6" class="pad" />
+          <path class="sheath" d={`M148 ${y(i)} H492`} pathLength="1" style={`--i:${i}`} />
+          <path class="wire" d={`M148 ${y(i)} H492`} stroke={w.wire} pathLength="1" style={`--i:${i}`} />
+        </g>
+      ))}
+    </svg>
+  </div>
+  <ol class="steps">
+    {wiring.map((w) => (
+      <li>
+        <span class="swatch" style={`background:${w.wire}`} aria-hidden="true"></span>
+        <span><strong>{w.pin}</strong> to <strong>{w.to}</strong>. <span class="muted">{w.why}</span></span>
+      </li>
+    ))}
+  </ol>
+</figure>
+
+<script>
+  // Draw wires in connection order the first time the diagram scrolls into view.
+  const figs = document.querySelectorAll(".wiring");
+  if ("IntersectionObserver" in window && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add("drawn");
+          io.unobserve(e.target);
+        }
+      }
+    }, { threshold: 0.4 });
+    figs.forEach((f) => {
+      f.classList.add("armed");
+      io.observe(f);
+    });
+  }
+</script>
+
+<style>
+  .wiring { margin: 0; display: grid; gap: 16px; }
+  .scroll { overflow-x: auto; }
+  svg { display: block; max-width: none; }
+  .silk { fill: var(--color-surface); font: 500 12px var(--font-mono); letter-spacing: 0.08em; }
+  .pad { fill: #C9A227; }
+  .sheath, .wire { fill: none; stroke-linecap: round; }
+  .sheath { stroke: var(--color-text); stroke-width: 8; }
+  .wire { stroke-width: 4; }
+  .armed .sheath, .armed .wire { stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .armed.drawn .sheath, .armed.drawn .wire {
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset var(--duration-slow) var(--ease-standard);
+    transition-delay: calc(var(--i) * 40ms + var(--i) * var(--duration-slow));
+  }
+  .steps { margin: 0; padding-left: 24px; display: grid; gap: 8px; }
+  .steps li { padding-left: 4px; }
+  .steps li > span:last-child { display: inline; }
+  .swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-sm);
+    margin-right: 8px;
+    vertical-align: -1px;
+  }
+</style>

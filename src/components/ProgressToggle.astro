@@ -1,0 +1,24 @@
+---
+interface Props {
+  id: string; // storage key
+  off?: string;
+  on?: string;
+}
+const { id, off = "Mark as learned", on = "Learned" } = Astro.props;
+---
+
+<button class="btn ghost" type="button" data-progress={id} data-off={off} data-on={on} aria-pressed="false">
+  <span class="check" aria-hidden="true"></span>
+  <span data-label>{off}</span>
+</button>
+
+<style>
+  .check {
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-radius: var(--radius-sm);
+    flex: none;
+  }
+  [aria-pressed="true"] .check { background: currentColor; }
+</style>

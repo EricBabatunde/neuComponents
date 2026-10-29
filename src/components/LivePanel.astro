@@ -1,0 +1,192 @@
+---
+interface Props {
+  name: string;
+  visualizer: string;
+  stream: { key: string; label: string; unit: string; digits: number }[];
+}
+const { name, visualizer, stream } = Astro.props;
+---
+
+<live-panel data-visualizer={visualizer}>
+  <div class="live">
+    <div class="bar">
+      <div class="btns">
+        <button class="btn" type="button" data-connect>Connect board</button>
+        <button class="btn ghost" type="button" data-sim aria-pressed="false">Simulate</button>
+        <button class="btn ghost" type="button" data-clear>Clear</button>
+      </div>
+      <span class="status tag plain" role="status"><span class="dot" data-dot></span><span data-status>Idle</span></span>
+    </div>
+    <canvas aria-label={`Live view of ${name} readings`}></canvas>
+    <dl class="readouts">
+      {stream.map((f) => (
+        <div>
+          <dt>{f.label}</dt>
+          <dd><span data-key={f.key} data-digits={f.digits}>--</span><small>{f.unit}</small></dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+  <p class="msg" data-msg hidden></p>
+</live-panel>
+
+<script>
+  import { SerialLink, type LinkState, type Sample } from "../lib/serial";
+  import { visualizers } from "../visualizers";
+
+  const STILL = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  class LivePanel extends HTMLElement {
+    connectedCallback() {
+      const $ = <T extends Element>(s: string) => this.querySelector<T>(s)!;
+      const connectBtn = $<HTMLButtonElement>("[data-connect]");
+      const simBtn = $<HTMLButtonElement>("[data-sim]");
+      const statusEl = $("[data-status]");
+      const dot = $("[data-dot]");
+      const msg = $<HTMLElement>("[data-msg]");
+      const fields = [...this.querySelectorAll<HTMLElement>("[data-key]")];
+      const vis = visualizers[this.dataset.visualizer!]($<HTMLCanvasElement>("canvas"));
+
+      let count = 0;
+      let hz = 0;
+      let simulating = false;
+      let simStart = 0;
+
+      const say = (text: string) => { msg.textContent = text; msg.hidden = !text; };
+
+      const show = (s: Sample) => {
+        count++;
+        vis.draw(s);
+        for (const el of fields) {
+          const v = s[el.dataset.key!];
+          if (typeof v === "number") el.textContent = v.toFixed(Number(el.dataset.digits));
+        }
+      };
+
+      const paint = (state: LinkState) => {
+        connectBtn.removeAttribute("aria-busy");
+        connectBtn.disabled = false;
+        connectBtn.className = "btn";
+        dot.className = "dot";
+        if (state === "unsupported") {
+          connectBtn.disabled = true;
+          connectBtn.textContent = "Connect board";
+          statusEl.textContent = simulating ? "Simulating" : "No Web Serial";
+          say("Live data needs Chrome or Edge on a desktop computer (Web Serial). Simulate works in any browser.");
+        } else if (state === "connecting") {
+          connectBtn.setAttribute("aria-busy", "true");
+          connectBtn.innerHTML = '<span class="spin"></span>Connecting';
+          statusEl.textContent = "Choose a port";
+          say("");
+        } else if (state === "streaming") {
+          connectBtn.className = "btn ghost";
+          connectBtn.textContent = "Disconnect";
+          dot.classList.add("ok");
+          statusEl.textContent = hz ? `Streaming · ${hz} Hz` : "Waiting for data";
+          say("");
+        } else if (state === "error") {
+          connectBtn.textContent = "Reconnect";
+          dot.classList.add("err");
+          statusEl.textContent = "Error";
+          say(`${link.error} Check the USB cable and that the firmware is flashed, then reconnect.`);
+        } else {
+          connectBtn.textContent = "Connect board";
+          statusEl.textContent = simulating ? "Simulating" : "Idle";
+          if (simulating) dot.classList.add("ok");
+        }
+      };
+
+      const link = new SerialLink(show, (s) => {
+        if (s === "streaming") stopSim();
+        paint(s);
+      });
+
+      // Sample rate shown in the status chip.
+      setInterval(() => {
+        hz = count;
+        count = 0;
+        if (link.state === "streaming") paint("streaming");
+      }, 1000);
+
+      const tick = (now: number) => {
+        if (!simulating) return;
+        show(vis.simulate((now - simStart) / 1000));
+        requestAnimationFrame(tick);
+      };
+      const startSim = () => {
+        simulating = true;
+        simBtn.setAttribute("aria-pressed", "true");
+        if (STILL) show(vis.simulate(2)); // one still frame under reduced motion
+        else { simStart = performance.now(); requestAnimationFrame(tick); }
+        paint(link.state);
+      };
+      function stopSim() {
+        simulating = false;
+        simBtn.setAttribute("aria-pressed", "false");
+        paint(link.state);
+      }
+
+      connectBtn.addEventListener("click", () => {
+        if (link.state === "connecting") return;
+        if (link.state === "streaming") void link.disconnect();
+        else void link.connect();
+      });
+      simBtn.addEventListener("click", () => {
+        if (link.state === "streaming") return say("Disconnect the board to use Simulate.");
+        simulating ? stopSim() : startSim();
+      });
+      this.querySelector("[data-clear]")!.addEventListener("click", () => vis.clear());
+
+      vis.clear();
+      paint(link.state);
+    }
+  }
+  customElements.define("live-panel", LivePanel);
+</script>
+
+<style>
+  live-panel { display: grid; gap: 12px; }
+  .live {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    border: 2px solid var(--color-text);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    overflow: hidden;
+  }
+  .bar {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--color-text);
+  }
+  .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  canvas { width: 100%; aspect-ratio: 4 / 3; display: block; border-right: 2px solid var(--color-text); }
+  .readouts { margin: 0; display: grid; align-content: start; }
+  .readouts div {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  dt { font: 500 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-muted); }
+  dd { margin: 0; font: 500 24px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+  dd small { font-size: 12px; color: var(--color-text-muted); margin-left: 4px; }
+  .msg {
+    border: 1px solid var(--color-border);
+    border-left: 2px solid var(--color-warning);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    background: var(--color-surface);
+  }
+  @media (max-width: 640px) {
+    .live { grid-template-columns: 1fr; }
+    canvas { border-right: 0; border-bottom: 2px solid var(--color-text); }
+  }
+</style>

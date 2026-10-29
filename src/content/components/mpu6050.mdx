@@ -1,0 +1,65 @@
+---
+name: MPU6050
+kind: IMU
+summary: A 6-axis motion sensor. It measures how the board is tilted and how fast it is turning, which is how drones and phones know their orientation.
+order: 1
+chips: ["I²C · 0x68", "3.3–5 V board", "±2–16 g", "±250–2000 °/s"]
+specs:
+  - { label: Sensor, value: "InvenSense MPU-6050: 3-axis accelerometer + 3-axis gyroscope" }
+  - { label: Common board, value: "GY-521 breakout with 3.3 V regulator and pull-ups" }
+  - { label: Interface, value: "I²C, up to 400 kHz" }
+  - { label: Address, value: "0x68 with AD0 low (default), 0x69 with AD0 high" }
+  - { label: Accelerometer, value: "±2, ±4, ±8 or ±16 g, 16-bit per axis" }
+  - { label: Gyroscope, value: "±250, ±500, ±1000 or ±2000 °/s, 16-bit per axis" }
+  - { label: Extras, value: "Temperature sensor, FIFO, on-chip motion processor (DMP)" }
+  - { label: Firmware output, value: "50 samples per second over USB serial" }
+board:
+  color: "#1F4E9C"
+  label: GY-521
+pins:
+  - { label: VCC, fn: "Power in. 3.3 V or 5 V; the board regulates it down to 3.3 V." }
+  - { label: GND, fn: "Ground. Must be shared with the ESP32." }
+  - { label: SCL, fn: "I²C clock line, driven by the ESP32." }
+  - { label: SDA, fn: "I²C data line, carries readings both ways." }
+  - { label: XDA, fn: "Auxiliary I²C data, for chaining a magnetometer. Leave unconnected." }
+  - { label: XCL, fn: "Auxiliary I²C clock. Leave unconnected." }
+  - { label: AD0, fn: "Address select. Low or floating = 0x68, high = 0x69." }
+  - { label: INT, fn: "Interrupt output, goes high when new data is ready. Not used here." }
+wiring:
+  - { pin: VCC, to: 3V3, wire: "#D7261E", why: "Powers the board at the ESP32's logic level." }
+  - { pin: GND, to: GND, wire: "#1A1A1A", why: "Common ground so both boards agree on 0 V." }
+  - { pin: SDA, to: GPIO8, wire: "#1E6FD9", why: "Default I²C data pin on the ESP32-S3 Arduino core." }
+  - { pin: SCL, to: GPIO9, wire: "#F2C200", why: "Default I²C clock pin." }
+firmware: mpu6050
+visualizer: imu-plane
+stream:
+  - { key: roll, label: Roll, unit: "°" }
+  - { key: pitch, label: Pitch, unit: "°" }
+  - { key: yaw, label: Yaw, unit: "°" }
+  - { key: az, label: Accel Z, unit: "m/s²", digits: 2 }
+  - { key: gz, label: Gyro Z, unit: "°/s" }
+  - { key: temp, label: Temp, unit: "°C" }
+pitfalls:
+  - title: Yaw drifts
+    body: "The MPU6050 has no magnetometer, so heading comes only from adding up gyro readings. Small errors add up and yaw slowly wanders. Roll and pitch stay steady because gravity corrects them."
+  - title: Keep it still at startup
+    body: "The firmware measures the gyro's resting offset for about two seconds after reset. Connecting resets the ESP32, so hold the sensor still until the plane stops moving."
+  - title: Clone chips
+    body: "Some cheap GY-521 boards carry an MPU-6500 or a clone that reports a different chip ID. If the firmware prints 'MPU6050 not found' with correct wiring, the chip may not be a genuine MPU-6050."
+  - title: Plane tilts the wrong way
+    body: "Roll and pitch signs depend on how the board sits on your breadboard. Rotate the breakout so its printed X arrow points forward, or flip the sign in the firmware."
+---
+
+## How it measures tilt
+
+The accelerometer feels every acceleration, including gravity. When the board lies flat, gravity pulls straight down on the Z axis, so Z reads about 9.81 m/s² and X and Y read near zero. Tip the board and some of that pull moves onto X or Y. The firmware turns those three numbers into roll and pitch angles with basic trigonometry.
+
+The gyroscope measures rotation speed in degrees per second around each axis. It does not know which way is down; it only knows how fast you are turning right now.
+
+## Why it uses both
+
+The accelerometer gives the right angle on average, but it jumps whenever you shake or move the board. The gyro is smooth and fast, but adding up its readings over time drifts. The firmware uses a **complementary filter**: each step it trusts the gyro for 98% of the change and nudges toward the accelerometer's angle for the remaining 2%. You get smooth motion that does not drift away in roll and pitch.
+
+## The axes on the board
+
+The GY-521 has small X and Y arrows printed on it. Roll is rotation around X (tipping a wing down), pitch is rotation around Y (nose up or down), and yaw is rotation around Z (turning left or right on the table).

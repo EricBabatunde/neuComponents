@@ -1,0 +1,101 @@
+---
+import { getCollection } from "astro:content";
+import Base from "./Base.astro";
+
+interface Link { href: string; label: string }
+interface Props {
+  title: string;
+  description: string;
+  index: string;
+  current: string; // href of this page
+  toc: { slug: string; text: string }[];
+  prev?: Link;
+  next?: Link;
+}
+const { title, description, index, current, toc, prev, next } = Astro.props;
+const components = (await getCollection("components")).sort((a, b) => a.data.order - b.data.order);
+const tutorials = (await getCollection("tutorials")).sort((a, b) => a.data.order - b.data.order);
+const groups = [
+  { name: "Components", links: components.map((c) => ({ href: `/components/${c.id}/`, label: c.data.name })) },
+  { name: "Tutorials", links: tutorials.map((t) => ({ href: `/tutorials/${t.id}/`, label: t.data.title })) },
+];
+---
+
+<Base title={title} description={description} index={index}>
+  <div class="doc">
+    <details class="side" open>
+      <summary class="btn ghost">Browse</summary>
+      <nav aria-label="All pages">
+        {groups.map((g) => (
+          <div class="group">
+            <span class="tag plain muted">{g.name}</span>
+            <ul>
+              {g.links.map((l) => (
+                <li>
+                  <a href={l.href} aria-current={l.href === current ? "page" : undefined}>{l.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </nav>
+    </details>
+
+    <main class="content">
+      <slot />
+      <nav class="pager" aria-label="Previous and next">
+        {prev ? <a class="card" href={prev.href}><span class="tag plain muted">Previous</span><strong>{prev.label}</strong></a> : <span></span>}
+        {next ? <a class="card next" href={next.href}><span class="tag plain muted">Next</span><strong>{next.label}</strong></a> : <span></span>}
+      </nav>
+    </main>
+
+    <aside class="toc" aria-label="On this page">
+      <span class="tag plain muted">On this page</span>
+      <ul>
+        {toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}
+      </ul>
+    </aside>
+  </div>
+</Base>
+
+<script>
+  // The sidebar starts open; collapse it into a disclosure on narrow screens.
+  const side = document.querySelector<HTMLDetailsElement>(".side");
+  if (side && matchMedia("(max-width: 1023px)").matches) side.open = false;
+</script>
+
+<style>
+  .doc { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); }
+  @media (min-width: 1024px) {
+    .doc { grid-template-columns: 200px minmax(0, 1fr) 200px; align-items: start; }
+    .side summary { display: none; }
+  }
+  .side, .toc { position: sticky; top: 24px; display: grid; gap: 12px; }
+  @media (max-width: 1023px) {
+    .side, .toc { position: static; }
+    .toc { display: none; }
+  }
+  .side summary { list-style: none; justify-self: start; }
+  .side summary::-webkit-details-marker { display: none; }
+  nav[aria-label="All pages"] { display: grid; gap: 24px; padding-top: 12px; }
+  .group { display: grid; gap: 8px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  .side a, .toc a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    text-decoration: none;
+    color: var(--color-text-muted);
+    transition: color var(--duration-fast) var(--ease-standard);
+  }
+  .side a:hover, .toc a:hover { color: var(--color-text); }
+  .side a[aria-current="page"] { color: var(--color-text); font-weight: 500; }
+  .side a[aria-current="page"]::before { content: ""; width: 8px; height: 8px; background: var(--color-primary); }
+  .toc a { font-size: 14px; }
+  .content { display: grid; gap: 48px; min-width: 0; }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .pager .card { gap: 4px; }
+  .pager .next { text-align: right; justify-items: end; }
+  @media (max-width: 640px) { .pager { grid-template-columns: 1fr; } }
+</style>

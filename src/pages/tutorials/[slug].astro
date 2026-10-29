@@ -1,0 +1,82 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import Doc from "../../layouts/Doc.astro";
+import LivePanel from "../../components/LivePanel.astro";
+import ProgressToggle from "../../components/ProgressToggle.astro";
+
+export async function getStaticPaths() {
+  const all = (await getCollection("tutorials")).sort((a, b) => a.data.order - b.data.order);
+  return all.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, prev: all[i - 1], next: all[i + 1] },
+  }));
+}
+
+const { entry, prev, next } = Astro.props;
+const t = entry.data;
+const { Content } = await render(entry);
+const uses = await Promise.all(t.uses.map((id) => getEntry("components", id)));
+const live = t.live ? await getEntry("components", t.live) : undefined;
+const link = (e?: typeof entry) => (e ? { href: `/tutorials/${e.id}/`, label: e.data.title } : undefined);
+
+const toc = [
+  { slug: "intro", text: "What you'll build" },
+  { slug: "steps", text: "Steps" },
+  ...(live ? [{ slug: "live", text: "Live view" }] : []),
+];
+---
+
+<Doc
+  title={t.title}
+  description={t.summary}
+  index="03 · Tutorial"
+  current={`/tutorials/${entry.id}/`}
+  toc={toc}
+  prev={link(prev)}
+  next={link(next)}
+>
+  <header class="card">
+    <span class="tag">Tutorial</span>
+    <h1>{t.title}</h1>
+    <p class="muted">{t.summary}</p>
+    <div class="chips">
+      {uses.map((c) => c && <a class="chip" href={`/components/${c.id}/`}>{c.data.name}</a>)}
+    </div>
+  </header>
+
+  <section id="intro" class="plate prose reveal">
+    <h2>What you'll build</h2>
+    <Content />
+  </section>
+
+  <section id="steps" class="stack reveal">
+    <h2>Steps</h2>
+    <ol class="steps">
+      {t.steps.map((s, i) => (
+        <li class="plate">
+          <div class="row">
+            <span class="tag">Step {i + 1}</span>
+            <ProgressToggle id={`step:${entry.id}:${i}`} off="Mark done" on="Done" />
+          </div>
+          <h3>{s.title}</h3>
+          <p>{s.body}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  {live && (
+    <section id="live" class="stack reveal">
+      <h2>Live view</h2>
+      <LivePanel name={live.data.name} visualizer={live.data.visualizer} stream={live.data.stream} />
+    </section>
+  )}
+</Doc>
+
+<style>
+  section { scroll-margin-top: 24px; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  a.chip { text-decoration: none; }
+  a.chip:hover { background: var(--color-primary); }
+</style>

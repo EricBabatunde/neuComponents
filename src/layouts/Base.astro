@@ -1,0 +1,81 @@
+---
+import "../styles/tokens.css";
+import "../styles/base.css";
+
+interface Props {
+  title: string;
+  description: string;
+  index: string; // right-hand top bar tag, e.g. "02 · Component"
+}
+const { title, description, index } = Astro.props;
+const fullTitle = title === "NeuComponents" ? title : `${title} · NeuComponents`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{fullTitle}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+    />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar">
+        <a class="tag" href="/">NeuComponents</a>
+        <span class="tag plain">{index}</span>
+      </header>
+      <slot />
+      <footer class="foot muted">
+        <span class="tag plain">Firmware lives in the repo under firmware/</span>
+      </footer>
+    </div>
+    <script>
+      import "../lib/progress-ui";
+      // Reveal sections once as they enter the viewport. Without JS everything stays visible.
+      const items = document.querySelectorAll(".reveal");
+      if ("IntersectionObserver" in window && items.length) {
+        document.documentElement.classList.add("reveal-armed");
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add("in");
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: "0px 0px -10% 0px" },
+        );
+        items.forEach((el) => io.observe(el));
+      }
+    </script>
+  </body>
+</html>
+
+<style>
+  .shell {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 16px 64px;
+    display: grid;
+    gap: 48px;
+  }
+  @media (min-width: 640px) { .shell { padding-inline: 24px; } }
+  @media (min-width: 1024px) { .shell { padding-inline: 32px; } }
+  .topbar { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .topbar .tag {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    padding: 8px 12px;
+    color: var(--color-text);
+  }
+  .topbar a.tag:hover { border-color: var(--color-text); }
+  .foot { border-top: 1px solid var(--color-border); padding-top: 24px; }
+</style>

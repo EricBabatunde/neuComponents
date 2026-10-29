@@ -1,0 +1,71 @@
+---
+interface Props {
+  name: string;
+  board: { color: string; label: string };
+  pins: { label: string; fn: string }[];
+}
+const { name, board, pins } = Astro.props;
+const PITCH = 48;
+const W = 128 + (pins.length - 1) * PITCH;
+const H = 176;
+const px = (i: number) => 64 + i * PITCH;
+---
+
+<figure class="pinout">
+  <div class="scroll">
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} role="group" aria-label={`${name} pinout`}>
+      <rect x="1" y="1" width={W - 2} height={H - 2} rx="6" fill={board.color} />
+      <text x="16" y="28" class="silk">{board.label}</text>
+      <rect x={W / 2 - 32} y="40" width="64" height="48" rx="2" fill="#1A1A1A" />
+      {pins.map((pin, i) => (
+        <g class="pin" tabindex="0" role="button" data-label={pin.label} data-fn={pin.fn} aria-label={`${pin.label}: ${pin.fn}`}>
+          <text x={px(i)} y="124" class="silk" text-anchor="middle">{pin.label}</text>
+          <circle cx={px(i)} cy="148" r="10" class="pad" />
+          <circle cx={px(i)} cy="148" r="4" fill="#1A1A1A" />
+        </g>
+      ))}
+    </svg>
+  </div>
+  <figcaption>
+    <span class="tag" data-pin>Pin</span>
+    <span data-fn class="muted">Hover or tab to a pin to see what it does.</span>
+  </figcaption>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>(".pinout").forEach((fig) => {
+    const label = fig.querySelector("[data-pin]")!;
+    const fn = fig.querySelector("[data-fn]")!;
+    const pins = fig.querySelectorAll<SVGGElement>(".pin");
+    const show = (g: SVGGElement) => {
+      pins.forEach((p) => p.classList.toggle("on", p === g));
+      label.textContent = g.dataset.label!;
+      fn.textContent = g.dataset.fn!;
+      fn.classList.remove("muted");
+    };
+    pins.forEach((g) => {
+      g.addEventListener("pointerenter", () => show(g));
+      g.addEventListener("focus", () => show(g));
+    });
+  });
+</script>
+
+<style>
+  .pinout { margin: 0; display: grid; gap: 12px; }
+  .scroll { overflow-x: auto; }
+  svg { display: block; max-width: none; }
+  .silk { fill: var(--color-surface); font: 500 12px var(--font-mono); letter-spacing: 0.08em; }
+  .pad { fill: #C9A227; stroke: transparent; stroke-width: 3; transition: stroke var(--duration-fast) var(--ease-standard); }
+  .pin { cursor: pointer; outline: none; }
+  .pin.on .pad, .pin:focus-visible .pad { stroke: var(--color-primary); }
+  figcaption {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    flex-wrap: wrap;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    min-height: 48px;
+  }
+</style>

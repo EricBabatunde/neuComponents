@@ -1,0 +1,216 @@
+<title>NeuComponents Preview</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;700&display=swap">
+<style>
+/* Layout: technical drawing sheet. Off-white gridded canvas, white bordered plates, one red accent. Light only by design. */
+:root {
+  --color-bg: #F2F0EC; --color-surface: #FFFFFF; --color-text: #101114; --color-text-muted: #6B6966;
+  --color-primary: #DC211A; --color-primary-hover: #B91C14; --color-border: #DCDCDC; --color-focus: #DC211A;
+  --color-success: #187A42; --color-warning: #B45309; --color-error: #DC211A;
+  --font-heading: "Space Grotesk", system-ui, sans-serif; --font-body: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm: 2px; --radius-md: 4px; --radius-lg: 6px;
+  --duration-fast: 120ms; --duration-base: 200ms; --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1); --ease-enter: cubic-bezier(0, 0, 0.2, 1); --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  background-color: var(--color-bg); color: var(--color-text); font: 400 16px/1.55 var(--font-body);
+  background-image: linear-gradient(var(--color-border) 1px, transparent 1px), linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 48px 48px; background-position: -1px -1px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 32px 64px;
+}
+main { max-width: 1040px; margin: 0 auto; }
+.view { display: grid; gap: 48px; }
+.back { color: var(--color-text); text-decoration: none; }
+.back:hover { color: var(--color-primary); }
+.back:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: 40px; } h2 { font-size: 24px; } h3 { font-size: 20px; }
+p { margin: 0; max-width: 65ch; }
+.tag { font: 500 12px/1 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; display: inline-flex; align-items: center; gap: 8px; }
+.tag::before { content: ""; width: 8px; height: 8px; background: var(--color-primary); }
+.tag.plain::before { display: none; }
+.chip { font: 500 12px/1 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--color-text); color: var(--color-surface); }
+.chip.red { background: var(--color-primary); }
+.chip.line { background: var(--color-surface); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+.topbar { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.topbar .tag { background: var(--color-surface); border: 1px solid var(--color-border); padding: 8px 12px; }
+.plate { background: var(--color-surface); border: 2px solid var(--color-text); border-radius: var(--radius-lg); padding: 24px; display: grid; gap: 16px; min-width: 0; }
+.plate.quiet { border: 1px solid var(--color-border); }
+.section-head { display: grid; gap: 8px; }
+.muted { color: var(--color-text-muted); }
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+.swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.sw { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; font: 400 12px/1.4 var(--font-mono); }
+.sw i { display: block; height: 48px; border-bottom: 1px solid var(--color-border); }
+.sw div { padding: 8px; } .sw b { font-weight: 500; display: block; }
+.scale { display: grid; gap: 8px; }
+.scale div { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--color-border); padding-bottom: 8px; min-width: 0; }
+.scale span:first-child { font: 400 12px var(--font-mono); color: var(--color-text-muted); width: 40px; flex: none; }
+.scale span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.radii { display: flex; gap: 16px; flex-wrap: wrap; }
+.radii div { width: 88px; height: 64px; border: 2px solid var(--color-text); display: grid; place-items: center; font: 400 12px var(--font-mono); }
+/* catalog */
+.catalog { display: grid; gap: 0; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; border-top: 1px solid var(--color-border); text-decoration: none; color: inherit;
+  transition: background var(--duration-fast) var(--ease-standard); }
+.row:first-child { border-top: 0; }
+.row:hover { background: var(--color-bg); }
+.row:focus-visible { outline: 2px solid var(--color-focus); outline-offset: -2px; }
+.row strong { font-size: 20px; font-weight: 500; }
+.row .done { color: var(--color-success); }
+.search { font: 400 16px var(--font-body); height: 48px; padding: 0 16px; width: 100%; border: 2px solid var(--color-text); border-radius: var(--radius-md); background: var(--color-surface); color: var(--color-text); }
+.search:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+/* component card */
+.card { background: var(--color-surface); border: 2px solid var(--color-text); border-radius: var(--radius-lg); padding: 24px; display: grid; gap: 12px;
+  transition: transform var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
+.card:hover { transform: translateY(-2px); border-color: var(--color-primary); }
+.card .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+/* buttons */
+.btns { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.btn { font: 500 14px/1 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; height: 40px; padding: 0 16px; border-radius: var(--radius-md);
+  border: 2px solid var(--color-text); background: var(--color-text); color: var(--color-surface); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  transition: background var(--duration-fast) var(--ease-standard), border-color var(--duration-fast) var(--ease-standard); }
+.btn:hover { background: var(--color-primary); border-color: var(--color-primary); }
+.btn:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.btn.ghost { background: var(--color-surface); color: var(--color-text); }
+.btn.ghost:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-surface); }
+.btn[aria-busy="true"] { background: var(--color-surface); color: var(--color-text); cursor: progress; }
+.spin { width: 12px; height: 12px; border: 2px solid var(--color-border); border-top-color: var(--color-primary); border-radius: 9999px; animation: spin 700ms linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-success); }
+/* live panel */
+.live { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 0; border: 2px solid var(--color-text); border-radius: var(--radius-lg); background: var(--color-surface); overflow: hidden; }
+.live canvas { width: 100%; aspect-ratio: 4 / 3; display: block; border-right: 2px solid var(--color-text); max-width: 100%; }
+.readouts { display: grid; align-content: start; }
+.readouts div { display: flex; justify-content: space-between; align-items: baseline; padding: 16px 24px; border-bottom: 1px solid var(--color-border); font-variant-numeric: tabular-nums; }
+.readouts span:first-child { font: 500 12px var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-muted); }
+.readouts span:last-child { font: 500 32px/1 var(--font-mono); }
+.livebar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 2px solid var(--color-text); grid-column: 1 / -1; }
+.callout { border: 1px solid var(--color-border); border-left: 2px solid var(--color-warning); border-radius: var(--radius-md); padding: 16px; background: var(--color-surface); display: grid; gap: 4px; }
+@media (max-width: 640px) { .live { grid-template-columns: 1fr; } .live canvas { border-right: 0; border-bottom: 2px solid var(--color-text); } h1 { font-size: 32px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } .card:hover { transform: none; } }
+</style>
+
+<main>
+  <div class="view" id="v-home">
+  <div class="topbar"><span class="tag">NeuComponents · Design preview</span><span class="tag plain">01 · Home + catalog</span></div>
+
+  <header class="plate">
+    <span class="chip red" style="justify-self:start">Mini landing</span>
+    <h1>Plug in a part. Watch what it does.</h1>
+    <p class="muted">Pick a component, wire it to an ESP32-S3, connect over USB, and see its readings move on screen while you learn how it works.</p>
+  </header>
+
+  <section class="plate quiet">
+    <span class="tag">Catalog</span>
+    <input class="search" id="q" type="search" placeholder="Search components" aria-label="Search components">
+    <div class="catalog">
+      <a class="row" href="#mpu6050"><strong>MPU6050</strong><span class="tag plain done">Learned</span></a>
+      <div class="row"><strong>VL53L1X</strong><span class="chip line">Not in preview</span></div>
+      <div class="row"><strong>HC-SR04</strong><span class="chip line">Soon</span></div>
+    </div>
+    <p class="muted">Open MPU6050 to see a component page.</p>
+  </section>
+
+  <section class="grid-2">
+    <div class="plate quiet">
+      <span class="tag">Palette</span>
+      <div class="swatches" id="sw"></div>
+    </div>
+    <div class="plate quiet">
+      <span class="tag">Type · Space Grotesk / JetBrains Mono</span>
+      <div class="scale">
+        <div><span>48</span><span style="font:700 48px/1.1 var(--font-heading);letter-spacing:-0.02em">Sensor</span></div>
+        <div><span>32</span><span style="font:700 32px/1.15 var(--font-heading);letter-spacing:-0.02em">Wire it up</span></div>
+        <div><span>20</span><span style="font:500 20px/1.3 var(--font-body)">What the readings mean</span></div>
+        <div><span>16</span><span>Body copy sits at 16px with 1.55 line height.</span></div>
+        <div><span>12</span><span class="tag plain">Mono label · 0x68</span></div>
+      </div>
+      <span class="tag">Radius</span>
+      <div class="radii"><div style="border-radius:2px">2 · chip</div><div style="border-radius:4px">4 · button</div><div style="border-radius:6px">6 · card</div></div>
+    </div>
+  </section>
+  </div>
+
+  <div class="view" id="v-comp" hidden>
+  <div class="topbar"><a class="tag back" href="#">Catalog / MPU6050</a><span class="tag plain">02 · Component page</span></div>
+
+  <header class="card">
+    <span class="tag">Component · IMU</span>
+    <h1>MPU6050</h1>
+    <p class="muted">6-axis accelerometer and gyroscope on I²C. Tells you how the board is tilted and how fast it is turning.</p>
+    <div class="chips"><span class="chip">I²C · 0x68</span><span class="chip">3.3–5 V</span><span class="chip line">±2–16 g</span></div>
+  </header>
+
+  <section class="plate quiet">
+    <div class="section-head"><span class="tag">Live view · simulated</span><h2>Tilt the board, the plane follows</h2></div>
+    <div class="live">
+      <div class="livebar">
+        <div class="btns">
+          <button class="btn" id="connect" type="button">Connect board</button>
+          <button class="btn" type="button" aria-busy="true"><span class="spin"></span>Connecting</button>
+          <button class="btn ghost" type="button"><span class="dot"></span>Streaming · 50 Hz</button>
+        </div>
+        <span class="chip">Simulate</span>
+      </div>
+      <canvas id="plane" width="640" height="480" aria-label="Wireframe airplane rotating with simulated roll, pitch and yaw"></canvas>
+      <div class="readouts">
+        <div><span>Roll</span><span id="r">0.0°</span></div>
+        <div><span>Pitch</span><span id="p">0.0°</span></div>
+        <div><span>Yaw</span><span id="y">0.0°</span></div>
+      </div>
+    </div>
+    <div class="callout"><span class="tag plain" style="color:var(--color-warning)">Watch out</span><p>Yaw drifts over time. The MPU6050 has no magnetometer, so heading comes from integrating the gyro.</p></div>
+  </section>
+
+  </div>
+</main>
+
+<script>
+const tokens = ["bg","surface","text","text-muted","primary","primary-hover","border","success","warning"];
+const cs = getComputedStyle(document.documentElement);
+document.getElementById("sw").innerHTML = tokens.map(t => {
+  const v = cs.getPropertyValue("--color-" + t).trim();
+  return `<div class="sw"><i style="background:${v}"></i><div><b>${t}</b>${v}</div></div>`;
+}).join("");
+
+// Tiny wireframe plane: rotate by yaw/pitch/roll, project orthographically.
+const P = [[0,0,-1.6],[0,0,1.2],[-1.6,0,0.1],[1.6,0,0.1],[-0.6,0,1.1],[0.6,0,1.1],[0,-0.5,1.1],[0,0,-0.2]];
+const E = [[0,1],[2,3],[2,0],[3,0],[2,1],[3,1],[4,5],[1,6],[0,7]];
+const cv = document.getElementById("plane"), ctx = cv.getContext("2d");
+const ink = cs.getPropertyValue("--color-text").trim(), red = cs.getPropertyValue("--color-primary").trim(), line = cs.getPropertyValue("--color-border").trim();
+const rad = d => d * Math.PI / 180;
+function rot([x,y,z], r, p, yw) {
+  let [c,s] = [Math.cos(rad(yw)), Math.sin(rad(yw))]; [x,z] = [x*c - z*s, x*s + z*c];
+  [c,s] = [Math.cos(rad(p)), Math.sin(rad(p))]; [y,z] = [y*c - z*s, y*s + z*c];
+  [c,s] = [Math.cos(rad(r)), Math.sin(rad(r))]; [x,y] = [x*c - y*s, x*s + y*c];
+  return [x, y, z];
+}
+function draw(r, p, yw) {
+  const w = cv.width, h = cv.height, k = 110, tilt = rad(25);
+  ctx.clearRect(0,0,w,h);
+  ctx.strokeStyle = line; ctx.lineWidth = 1;
+  for (let i = 40; i < w; i += 40) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,h); ctx.stroke(); }
+  for (let i = 40; i < h; i += 40) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(w,i); ctx.stroke(); }
+  const pts = P.map(v => { const [x,y,z] = rot(v, r, p, yw); return [w/2 + x*k, h/2 + (y*Math.cos(tilt) + z*Math.sin(tilt))*k]; });
+  ctx.lineWidth = 3; ctx.lineCap = "round";
+  E.forEach(([a,b], i) => { ctx.strokeStyle = i === 0 ? red : ink; ctx.beginPath(); ctx.moveTo(...pts[a]); ctx.lineTo(...pts[b]); ctx.stroke(); });
+  document.getElementById("r").textContent = r.toFixed(1) + "°";
+  document.getElementById("p").textContent = p.toFixed(1) + "°";
+  document.getElementById("y").textContent = ((yw % 360 + 360) % 360).toFixed(1) + "°";
+}
+function route() {
+  const comp = location.hash === "#mpu6050";
+  document.getElementById("v-home").hidden = comp;
+  document.getElementById("v-comp").hidden = !comp;
+  scrollTo(0, 0);
+}
+addEventListener("hashchange", route); route();
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function tick(t) { const s = t / 1000; draw(25*Math.sin(s*0.9), 12*Math.sin(s*0.6+1), s*18); if (!still) requestAnimationFrame(tick); }
+draw(18, 8, 30); if (!still) requestAnimationFrame(tick);
+</script>

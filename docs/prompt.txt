@@ -1,0 +1,136 @@
+Avoid vibe-coded website patterns:
+
+COLORS & VISUAL
+
+- No default purple gradients unless brand-appropriate
+
+- Remove sparkles, emojis from hero headings
+
+- Eliminate generic glowing hover effects
+
+TYPOGRAPHY
+
+- Consistent weight hierarchy (avoid oversized headings + ultra-thin body)
+
+- Uniform line-height and paragraph spacing
+
+- Define type scale, stick to it
+
+LAYOUT & COMPONENTS
+
+- Identical component placement across pages
+
+- Consistent border radius values (define 2-3 max)
+
+- Subtle hover states (2-4px lift max)
+
+- Proportional icon sizing relative to text
+
+- Remove non-functional social icons
+
+ANIMATIONS & INTERACTIONS
+
+- Add easing curves (cubic-bezier)
+
+- Stagger timing intentionally
+
+- Every animation serves purpose
+
+UX BEHAVIORS
+
+- Loading states for all async actions
+
+- Progress indicators on buttons
+
+- Functional toggles/carousels/interactions
+
+- Skeleton screens for data-heavy sections
+
+COPYWRITING
+
+- Remove em-dash overuse
+
+- Avoid vague phrases: "Launch faster", "Build your dreams", "Create without limits"
+
+- No fake testimonials
+
+- No generic AI faces or "Sarah Chen" placeholder names
+
+CORE PRINCIPLE
+
+Create a design system first. Every spacing value, color, radius, weight, and animation should reference that system. Inconsistency signals vibe-coding more than any single element.
+
+
+## Color Palette
+
+- Primary: [hex] — used for main actions, key UI elements
+
+- Secondary: [hex] — used for supporting elements, secondary buttons
+
+- Background: [hex] — main canvas color
+
+- Surface: [hex] — cards, modals, elevated elements
+
+- Text Primary: [hex] — headings, body copy
+
+- Text Secondary: [hex] — captions, helper text, placeholders
+
+- Border: [hex] — dividers, input outlines
+
+- Success: [hex]
+
+- Warning: [hex]
+
+- Error: [hex]
+
+## Typography
+
+- Font Family: [font name from Google Fonts]
+
+- Headings: bold, tracking tight
+
+- Body: regular weight
+
+- Size Scale: 12 / 14 / 16 / 20 / 24 / 32 / 40 / 48px
+
+## Spacing Scale
+
+Use a 4px base unit. Common values: 4, 8, 12, 16, 24, 32, 48, 64px
+
+## Border Radius
+
+- Small (inputs, chips): [x]px
+
+- Medium (cards, buttons): [x]px
+
+- Large (modals, containers): [x]px
+
+- Full (avatars, pills): 9999px
+
+## Shadows
+
+- Subtle: 0 1px 2px rgba(0,0,0,0.05)
+
+- Medium: 0 4px 12px rgba(0,0,0,0.1)
+
+- Strong: 0 8px 24px rgba(0,0,0,0.15)
+
+## Component Patterns
+
+Buttons: [describe padding, height, hover states]
+
+Inputs: [describe height, padding, focus states]
+
+Cards: [describe padding, shadow, border treatment]
+
+## Rules
+
+1. Never introduce colors outside this palette
+
+2. Always use the spacing scale — no arbitrary values
+
+3. Maintain consistent border radius per element type
+
+4. When in doubt, add more whitespace
+
+

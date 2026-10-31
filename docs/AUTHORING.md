@@ -51,7 +51,9 @@ The id is the filename (lowercase, no spaces), and the page appears at `/compone
 `firmware/<id>/platformio.ini` targets `esp32-s3-devkitc-1` with the Arduino framework (copy an existing one, change `lib_deps`). `src/main.cpp`:
 
 - `Serial.begin(115200)`, `Wire.begin()` (SDA GPIO8, SCL GPIO9).
-- On sensor-not-found, print a plain-text message and retry every second. Text lines are ignored by the site.
+- On sensor-not-found, print a plain-text message and retry every second. The live panel shows the latest text line as "Board says: ...", so write messages a learner can act on ("not found at 0x29. Check SDA (GPIO8) and SCL (GPIO9).").
+- Prefer reading registers directly over libraries that hard-check a chip ID. Clone and sibling chips (e.g. MPU-6500 sold as MPU6050) are common; accept the family and report which chip was found.
+- Arduino defines `word(...)` as a macro. Don't name helpers `word`, `byte`, `bit` or similar.
 - Print **one JSON object per line**, numbers only, flat keys: `{"key":1.23,"other":4}`. Keep keys short and stable; they are the contract with `stream[].key` and the visualizer.
 - Aim for 20 to 50 Hz.
 - Comment the wiring at the top of the file.

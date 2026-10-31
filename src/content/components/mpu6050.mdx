@@ -44,10 +44,10 @@ pitfalls:
     body: "The MPU6050 has no magnetometer, so heading comes only from adding up gyro readings. Small errors add up and yaw slowly wanders. Roll and pitch stay steady because gravity corrects them."
   - title: Keep it still at startup
     body: "The firmware measures the gyro's resting offset for about two seconds after reset. Connecting resets the ESP32, so hold the sensor still until the plane stops moving."
-  - title: Clone chips
-    body: "Some cheap GY-521 boards carry an MPU-6500 or a clone that reports a different chip ID. If the firmware prints 'MPU6050 not found' with correct wiring, the chip may not be a genuine MPU-6050."
+  - title: Your chip may be an MPU-6500
+    body: "Many boards sold as GY-521 MPU6050 carry an MPU-6500 (chip ID 0x70). Libraries that check for ID 0x68 reject it even though it is wired correctly. This firmware reads the registers directly and works with both; the live panel shows which chip it found."
   - title: Plane tilts the wrong way
-    body: "Roll and pitch signs depend on how the board sits on your breadboard. Rotate the breakout so its printed X arrow points forward, or flip the sign in the firmware."
+    body: "Roll and pitch signs depend on how the board sits on your breadboard. Rotate the breakout so its printed X arrow points forward, or change ROLL_SIGN, PITCH_SIGN or YAW_SIGN at the top of the firmware and upload again."
 ---
 
 ## How it measures tilt

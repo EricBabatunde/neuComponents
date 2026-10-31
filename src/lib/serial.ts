@@ -12,6 +12,7 @@ export class SerialLink {
   constructor(
     private onSample: (s: Sample) => void,
     private onState: (s: LinkState) => void,
+    private onText: (line: string) => void = () => {},
   ) {}
 
   static supported(): boolean {
@@ -60,8 +61,11 @@ export class SerialLink {
   }
 
   private parse(line: string) {
-    // Boot logs and other text are ignored; only JSON objects count as samples.
-    if (!line.startsWith("{")) return;
+    // Plain text (status and error messages from the firmware) goes to onText.
+    if (!line.startsWith("{")) {
+      if (line) this.onText(line);
+      return;
+    }
     try {
       const obj = JSON.parse(line);
       const sample: Sample = {};

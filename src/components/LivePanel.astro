@@ -56,6 +56,7 @@ const { name, visualizer, stream } = Astro.props;
 
       const show = (s: Sample) => {
         count++;
+        if (!msg.hidden && link.state === "streaming") say(""); // data is flowing, board messages are resolved
         vis.draw(s);
         for (const el of fields) {
           const v = s[el.dataset.key!];
@@ -83,7 +84,6 @@ const { name, visualizer, stream } = Astro.props;
           connectBtn.textContent = "Disconnect";
           dot.classList.add("ok");
           statusEl.textContent = hz ? `Streaming · ${hz} Hz` : "Waiting for data";
-          say("");
         } else if (state === "error") {
           connectBtn.textContent = "Reconnect";
           dot.classList.add("err");
@@ -96,10 +96,18 @@ const { name, visualizer, stream } = Astro.props;
         }
       };
 
-      const link = new SerialLink(show, (s) => {
-        if (s === "streaming") stopSim();
-        paint(s);
-      });
+      // ESP32 boot log lines (ROM banner, load addresses) are noise for learners.
+      const BOOT_NOISE = /^(ESP-ROM|Build:|rst:|SPIWP|mode:|load:|entry |configsip|clk_drv|\[\s*\d+\]\[)/;
+      const link = new SerialLink(
+        show,
+        (s) => {
+          if (s === "streaming") stopSim();
+          paint(s);
+        },
+        (line) => {
+          if (!BOOT_NOISE.test(line)) say(`Board says: ${line}`);
+        },
+      );
 
       // Sample rate shown in the status chip.
       setInterval(() => {
